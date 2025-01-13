@@ -1,0 +1,99 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+lib/
+lib64/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Installer logs
+pip-log.txt
+pypiserial.json
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+stablediff/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# celery / dramatiq
+celerybeat-schedule
+celeryev.state
+dramatiq.db
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.sock
+
+# flake8
+.ropeproject
+
+# sveltekit
+.svelte-kit/
+build/
+
+# tensorflow
+saved_model/
+
+# streamlit
+.streamlit/
+
+# pytype
+.pytype/
+
+# IPython
+ipython_config.py
+
+# matplotlib
+matplotlib_ว้cache/
+
+# poetry
+poetry.lock
+
+# Local settings
+local_settings.py
+secret_settings.py
+instance/
+.webassets-cache
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.mo
+*.pot
+parler.out
+
+# OS or Editor Folders
+.DS_Store
+.vscode

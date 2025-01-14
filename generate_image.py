@@ -12,9 +12,9 @@ if torch.cuda.is_available():
 else:
     pipe.to("cpu")
 
-def generate_image(text_content, output_path, prompt="An abstract background"):
-    # Generate an image
-    image = pipe(prompt, num_inference_steps=50, guidance_scale=7.0).images[0]
+def generate_image(text_content, output_path, width=1024, height=1024, prompt="An abstract background"):
+    # Generate an image with specified dimensions
+    image = pipe(prompt, num_inference_steps=50, guidance_scale=7.0, width=width, height=height).images[0]
 
     # Initialize drawing context
     draw = ImageDraw.Draw(image)

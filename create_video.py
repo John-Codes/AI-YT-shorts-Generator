@@ -2,7 +2,7 @@ import os
 import subprocess
 import glob
 
-def create_video(image_folder="output/frames", output_video="output/videos/output.mp4", frame_rate=2):
+def create_video(image_folder="output/frames", output_video="output/videos/output.mp4", frame_duration=0.1):
     sentence_images = sorted(glob.glob(os.path.join(image_folder, "sentence_*.png")))
     all_frames = []
 
@@ -21,21 +21,32 @@ def create_video(image_folder="output/frames", output_video="output/videos/outpu
         print("No image files found.")
         return
 
-    # Combine images into a video
-    command = ['ffmpeg', '-y']
-    for frame_path in all_frames:
-        command.extend(['-i', frame_path])
-
+    num_frames = len(all_frames)
+    print(f"Starting video creation with {num_frames} frames and a frame duration of {frame_duration} seconds.")
+    # Combine images into a video using concat filter
     input_args = ' '.join([f'-i {f}' for f in all_frames])
-    concat_list = ' '.join([f'[{i}]' for i in range(len(all_frames))])
-    concat_filter = f"concat=n={len(all_frames)}:v=1:a=0,format=yuv420p[v]"
+    filter_complex_parts = []
+    for i, frame in enumerate(all_frames):
+        filter_complex_parts.append(f"[{i}:v]setpts={frame_duration}/TB[s{i}];")
+    concat_inputs = "".join([f"[s{i}]" for i in range(num_frames)])
+    concat_filter = f"{concat_inputs}concat=n={num_frames}:v=1:a=0,format=yuv420p[v]"
+    filter_complex = "".join(filter_complex_parts) + concat_filter
 
     command = ['ffmpeg', '-y'] + \
               input_args.split() + \
-              ['-filter_complex', concat_filter, '-map', '[v]', output_video]
+              ['-filter_complex', filter_complex, '-map', '[v]', output_video]
 
-    subprocess.run(command, check=True)
-    print(f"Video created at {output_video}")
+    try:
+        subprocess.run(command, check=True, capture_output=True, text=True)
+        print(f"Video created at {output_video}")
+    except subprocess.CalledProcessError as e:
+        print(f"Error creating video: {e}")
+        print(f"FFmpeg stdout: {e.stdout}")
+        print(f"FFmpeg stderr: {e.stderr}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+    finally:
+        print("Video creation process finished.")
 
 def crop_video(input_video="output/videos/output.mp4", output_video="output/videos/output_cropped.mp4"):
     # Crop the video to 9:16 aspect ratio

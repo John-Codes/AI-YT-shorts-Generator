@@ -1,6 +1,8 @@
 import torch
 from diffusers import StableDiffusion3Pipeline
 from PIL import Image, ImageDraw, ImageFont
+import time
+import os
 
 # Load the model
 pipe = StableDiffusion3Pipeline.from_pretrained(
@@ -12,37 +14,58 @@ if torch.cuda.is_available():
 else:
     pipe.to("cpu")
 
-def generate_image(text_content, output_path, width=1024, height=1024, prompt="An abstract background"):
-    # Generate an image with specified dimensions
-    image = pipe(prompt, num_inference_steps=50, guidance_scale=7.0, width=width, height=height).images[0]
+def is_dark(color, threshold=100):
+    return sum(color) < threshold
 
-    # Initialize drawing context
-    draw = ImageDraw.Draw(image)
-    width, height = image.size
+def generate_image(text_content, output_path, width=1024, height=1024, base_image=None):
     font_size = 50
     font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", font_size)
     text_color = (0, 0, 0)  # Black
-
-    # Calculate total text height
-    total_text_height = len(text_content) * font_size * 1.2
-
-    # Starting y position for the text
-    current_y = (height - total_text_height) / 2
-
-    # Add text to the image
-    for line in text_content:
-        bbox = draw.textbbox((0, 0), line, font=font)
+    if base_image is None:
+        output_path = os.path.join("output", "genImg", os.path.basename(output_path))
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        # Generate base image
+        while True:
+            image = pipe(prompt="An abstract background", num_inference_steps=20, guidance_scale=7.0, width=width, height=height).images[0]
+            img_width, img_height = image.size
+            center_x, center_y = img_width // 2, img_height // 2
+            center_color = image.getpixel((center_x, center_y))
+            if not is_dark(center_color):
+                break
+        image.save(output_path)
+        print(f"Base image saved as {output_path}")
+    else:
+        output_path = os.path.join("output", "frames", os.path.basename(output_path))
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        # Add word to base image with animation
+        word = text_content[0]
+        base = Image.open(base_image).convert("RGBA")
+        img_width, img_height = base.size
+        draw = ImageDraw.Draw(base)
+        bbox = draw.textbbox((0, 0), word, font=font)
         text_width = bbox[2] - bbox[0]
         text_height = bbox[3] - bbox[1]
-        text_x = (width - text_width) / 2
-        draw.text((text_x, current_y), line, fill=text_color, font=font)
-        current_y += text_height * 1.2
+        text_x = img_width / 2 - text_width / 2
+        text_y = img_height / 2 - text_height / 2
 
-    # Save the image
-    image.save(output_path)
-    print(f"Image saved as {output_path}")
+        for size in range(10, font_size + 1, 5):
+            animated_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", size)
+            temp_image = base.copy()
+            d = ImageDraw.Draw(temp_image)
+            bbox_anim = d.textbbox((0, 0), word, font=animated_font)
+            text_width_anim = bbox_anim[2] - bbox_anim[0]
+            text_height_anim = bbox_anim[3] - bbox_anim[1]
+            text_x_anim = img_width / 2 - text_width_anim / 2
+            text_y_anim = img_height / 2 - text_height_anim / 2
+            d.text((text_x_anim, text_y_anim), word, fill=text_color, font=animated_font)
+            temp_image.save(output_path.replace(".png", f"_size_{size}.png")) # Save animated frames
+        
+        # Save final word image
+        draw.text((text_x, text_y), word, fill=text_color, font=font)
+        base.save(output_path)
+        print(f"Word image saved as {output_path}")
 
 if __name__ == "__main__":
-    # Example usage
-    text_content = ["This is a test", "with multiple lines"]
-    generate_image(text_content=text_content, output_path="output.png")
+    with open("text_content.txt", "r") as f:
+        text_content = [line.strip() for line in f]
+    generate_image(text_content=text_content, output_path="output/genImg/test.png")

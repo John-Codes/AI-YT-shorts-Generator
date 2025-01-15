@@ -20,14 +20,11 @@ frame_count = 0
 for i, sentence in enumerate(sentences):
     # Generate base image for the sentence
     base_image_path = os.path.join("output", "genImg", f'sentence_{i}.png')
-    generate_image(text_content=[sentence], output_path=base_image_path, base_image=None) # Modified call
-
+    generate_image(text_content=[sentence], output_path=os.path.join("output", "genImg", f'sentence_{i}.png')) # Generate base image
     words = word_tokenize(sentence)
-    for j, word in enumerate(words):
-        word_image_path = os.path.join("output", "frames", f'sentence_{i}_word_{j:02d}.png')
-        # Need to modify generate_image to handle single word and base image
-        generate_image(text_content=[word], output_path=word_image_path, base_image=base_image_path)
-        frame_count += 1
+    # Generate word animations for the sentence
+    generate_image(text_content=words, output_path=os.path.join(output_dir, f'S{i}'), sentence_index=i, base_image=base_image_path)
+    frame_count += len(words)
 
 print(f"Generated {frame_count} frames.")
 

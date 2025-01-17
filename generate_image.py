@@ -22,7 +22,7 @@ def generate_image(text_content, output_path, sentence_index=0, word_index=0, wi
     font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", font_size)
     text_color = (0, 0, 0)  # Black
     if base_image is None:
-        output_path = os.path.join("output", "genImg", os.path.basename(output_path))
+        output_path = os.path.join("output", "AIBackgroundImage", os.path.basename(output_path))
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         # Generate base image
         while True:
@@ -68,4 +68,4 @@ def generate_image(text_content, output_path, sentence_index=0, word_index=0, wi
 if __name__ == "__main__":
     with open("text_content.txt", "r") as f:
         text_content = [line.strip() for line in f]
-    generate_image(text_content=text_content, output_path="output/genImg/test.png")
+    generate_image(text_content=text_content, output_path="output/AIBackgroundImage/test.png")
